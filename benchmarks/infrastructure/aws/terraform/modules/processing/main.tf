@@ -1,7 +1,7 @@
 resource "aws_db_instance" "metastore_service" {
   engine                 = "mysql"
   engine_version         = "8.0.28"
-  instance_class         = "db.m5.large"
+  instance_class         = "db.t3.small"
   db_name                = "hive"
   username               = var.mysql_user
   password               = var.mysql_password
@@ -25,7 +25,7 @@ resource "aws_key_pair" "benchmarks" {
 
 resource "aws_emr_cluster" "benchmarks" {
   name                              = "delta_performance_benchmarks_cluster"
-  release_label                     = "emr-6.5.0"
+  release_label                     = "emr-6.6.0"
   applications                      = ["Spark", "Hive"]
   termination_protection            = false
   keep_job_flow_alive_when_no_steps = true
@@ -37,10 +37,10 @@ resource "aws_emr_cluster" "benchmarks" {
     emr_managed_slave_security_group  = aws_security_group.emr.id
   }
   master_instance_group {
-    instance_type = "i3.2xlarge"
+    instance_type = "i3.xlarge"
   }
   core_instance_group {
-    instance_type  = "i3.2xlarge"
+    instance_type  = "i3.xlarge"
     instance_count = var.emr_workers
   }
 

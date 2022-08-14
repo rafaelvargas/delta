@@ -20,6 +20,8 @@ import argparse
 from scripts.benchmarks import *
 
 delta_version = "2.0.0"
+hudi_version = "0.11.1"
+iceberg_version="0.14.0"
 
 # Benchmark name to their specifications. See the imported benchmarks.py for details of benchmark.
 
@@ -34,12 +36,18 @@ benchmarks = {
     # TPC-DS data load
     "tpcds-1gb-delta-load": DeltaTPCDSDataLoadSpec(delta_version=delta_version, scale_in_gb=1),
     "tpcds-3tb-delta-load": DeltaTPCDSDataLoadSpec(delta_version=delta_version, scale_in_gb=3000),
+    "tpcds-1gb-hudi-load": HudiTPCDSDataLoadSpec(hudi_version=hudi_version, scale_in_gb=1),
+    "tpcds-3tb-hudi-load": HudiTPCDSDataLoadSpec(hudi_version=hudi_version, scale_in_gb=3000, use_datasource=True),
+    "tpcds-1gb-iceberg-load": IcebergTPCDSDataLoadSpec(iceberg_version=iceberg_version, scale_in_gb=1),
+    "tpcds-1gb-iceberg-load": IcebergTPCDSDataLoadSpec(iceberg_version=iceberg_version, scale_in_gb=3000),
     "tpcds-1gb-parquet-load": ParquetTPCDSDataLoadSpec(scale_in_gb=1),
     "tpcds-3tb-parquet-load": ParquetTPCDSDataLoadSpec(scale_in_gb=3000),
 
     # TPC-DS benchmark
     "tpcds-1gb-delta": DeltaTPCDSBenchmarkSpec(delta_version=delta_version, scale_in_gb=1),
     "tpcds-3tb-delta": DeltaTPCDSBenchmarkSpec(delta_version=delta_version, scale_in_gb=3000),
+    "tpcds-1gb-hudi": HudiTPCDSBenchmarkSpec(hudi_version=hudi_version, scale_in_gb=1),
+    "tpcds-3tb-hudi": HudiTPCDSBenchmarkSpec(hudi_version=hudi_version, scale_in_gb=3000),
     "tpcds-1gb-parquet": ParquetTPCDSBenchmarkSpec(scale_in_gb=1),
     "tpcds-3tb-parquet": ParquetTPCDSBenchmarkSpec(scale_in_gb=3000),
 

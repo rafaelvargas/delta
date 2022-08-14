@@ -162,6 +162,96 @@ class DeltaTPCDSBenchmarkSpec(TPCDSBenchmarkSpec, DeltaBenchmarkSpec):
         super().__init__(delta_version=delta_version, scale_in_gb=scale_in_gb)
 
 
+
+# ============== Iceberg benchmark specifications ==============
+
+class IcebergBenchmarkSpec(BenchmarkSpec):
+    """
+    Specification of a benchmark using the Iceberg format
+    """
+    def __init__(self, iceberg_version, benchmark_main_class, main_class_args=None, scala_version="2.12", **kwargs):
+        iceberg_spark_confs = [
+            "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+            "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog"
+        ]
+        self.scala_version = scala_version
+
+        if "spark_confs" in kwargs and isinstance(kwargs["spark_confs"], list):
+            kwargs["spark_confs"].extend(iceberg_spark_confs)
+        else:
+            kwargs["spark_confs"] = iceberg_spark_confs
+
+        super().__init__(
+            format_name="iceberg",
+            maven_artifacts=self.iceberg_maven_artifacts(iceberg_version, self.scala_version),
+            benchmark_main_class=benchmark_main_class,
+            main_class_args=main_class_args,
+            **kwargs
+        )
+
+    def update_iceberg_version(self, new_iceberg_version):
+        self.maven_artifacts = \
+            IcebergBenchmarkSpec.iceberg_maven_artifacts(new_iceberg_version, self.scala_version)
+
+    @staticmethod
+    def iceberg_maven_artifacts(iceberg_version, scala_version):
+        return f"org.apache.iceberg:iceberg-spark-runtime-3.2_{scala_version}:{iceberg_version}"
+
+
+class IcebergTPCDSDataLoadSpec(TPCDSDataLoadSpec, IcebergBenchmarkSpec):
+    def __init__(self, iceberg_version, scale_in_gb=1):
+        super().__init__(iceberg_version=iceberg_version, scale_in_gb=scale_in_gb)
+
+
+class IcebergTPCDSBenchmarkSpec(TPCDSBenchmarkSpec, IcebergBenchmarkSpec):
+    def __init__(self, iceberg_version, scale_in_gb=1):
+        super().__init__(iceberg_version=iceberg_version, scale_in_gb=scale_in_gb)
+
+
+
+# ============== Hudi benchmark specifications ==============
+
+class HudiBenchmarkSpec(BenchmarkSpec):
+    """
+    Specification of a benchmark using the Hudi format
+    NOTE: Spark version is fixed to 3.1.2. In order to parameterize spark version, change the super class and spark-sql version in build.sbt.
+    """
+    def __init__(self, hudi_version, benchmark_main_class, main_class_args=None, scala_version="2.12", **kwargs):
+        hudi_spark_confs = [
+            "spark.serializer=org.apache.spark.serializer.KryoSerializer",
+            "spark.sql.extensions=org.apache.spark.sql.hudi.HoodieSparkSessionExtension"
+        ]
+        self.scala_version = scala_version
+
+        super().__init__(
+            format_name="hudi",
+            maven_artifacts=self.hudi_maven_artifacts(hudi_version, self.scala_version),
+            spark_confs=hudi_spark_confs,
+            benchmark_main_class=benchmark_main_class,
+            main_class_args=main_class_args,
+            **kwargs
+        )
+
+    def update_hudi_version(self, new_hudi_version):
+        self.maven_artifacts = \
+            HudiBenchmarkSpec.hudi_maven_artifacts(new_hudi_version, self.scala_version)
+
+    @staticmethod
+    def hudi_maven_artifacts(hudi_version, scala_version):
+        return f"org.apache.hudi:hudi-spark3.2-bundle_{scala_version}:{hudi_version}"
+
+
+class HudiTPCDSDataLoadSpec(TPCDSDataLoadSpec, HudiBenchmarkSpec):
+    def __init__(self, hudi_version, scale_in_gb=1, use_datasource=False):
+        super().__init__(hudi_version=hudi_version, scale_in_gb=scale_in_gb, use_datasource=use_datasource)
+
+
+class HudiTPCDSBenchmarkSpec(TPCDSBenchmarkSpec, HudiBenchmarkSpec):
+    def __init__(self, hudi_version, scale_in_gb=1):
+        super().__init__(hudi_version=hudi_version, scale_in_gb=scale_in_gb)
+
+
+
 # ============== Parquet benchmark specifications ==============
 
 
