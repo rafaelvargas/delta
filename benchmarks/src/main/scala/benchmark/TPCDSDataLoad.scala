@@ -83,7 +83,7 @@ class TPCDSDataLoad(conf: TPCDSDataLoadConf) extends Benchmark(conf) {
     require(conf.scaleInGB > 0)
     require(Seq(1, 3000).contains(conf.scaleInGB), "")
     val sourceLocation = conf.sourcePath.getOrElse {
-      s"s3://devrel-delta-datasets/tpcds-2.13/tpcds_sf${conf.scaleInGB}_parquet/"
+      s"s3://devrel-delta-datasets/tpcds-2.13/tpcds_sf${conf.scaleInGB}_parquet"
     }
 
     runQuery(s"DROP DATABASE IF EXISTS ${dbName} CASCADE", s"drop-database")
@@ -103,8 +103,30 @@ class TPCDSDataLoad(conf: TPCDSDataLoadConf) extends Benchmark(conf) {
       val excludeNulls =
         if (!partitionTables || tablePartitionKeys(tableName)(0).isEmpty) ""
         else "WHERE " + tablePartitionKeys(tableName)(0) + " IS NOT NULL"
+      
+      val tableOptions = if ("hudi".equalsIgnoreCase(conf.formatName)) {
+        s"""
+            |OPTIONS (
+            | type = 'cow',
+            | primaryKey = '${tablePrimaryKeys(tableName).mkString(",")}',
+            | precombineField = '',
+            | 'hoodie.datasource.write.hive_style_partitioning' = 'true',
+            | 'hoodie.parquet.compression.codec' = 'snappy',
+            | 'hoodie.populate.meta.fields' = 'false',
+            | 'hoodie.combine.before.insert' = 'false',
+            | 'hoodie.sql.insert.mode' = 'non-strict',
+            | 'hoodie.sql.bulk.insert.enable' = 'true',
+            | 'hoodie.bulkinsert.sort.mode' = 'NONE',
+            | 'hoodie.parquet.max.file.size' = '141557760',
+            | 'hoodie.parquet.block.size' = '141557760',
+            | 'hoodie.metadata.enable' = 'false',
+            | 'hoodie.parquet.writelegacyformat.enabled' = 'false'
+            |)
+            |""".stripMargin
+      } else {
+        ""
+      }
 
-      var tableOptions = ""
       runQuery(s"DROP TABLE IF EXISTS $fullTableName", s"drop-table-$tableName")
 
       runQuery(s"""CREATE TABLE $fullTableName
