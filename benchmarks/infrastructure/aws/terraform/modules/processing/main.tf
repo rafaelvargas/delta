@@ -1,7 +1,7 @@
 resource "aws_db_instance" "metastore_service" {
   engine                 = "mysql"
   engine_version         = "8.0.28"
-  instance_class         = "db.t3.small"
+  instance_class         = "db.t3.medium"
   db_name                = "hive"
   username               = var.mysql_user
   password               = var.mysql_password
@@ -24,7 +24,7 @@ resource "aws_key_pair" "benchmarks" {
 }
 
 resource "aws_emr_cluster" "benchmarks" {
-  name                              = "delta_performance_benchmarks_cluster"
+  name                              = "data_lake_table_formats_performance_benchmarks_cluster"
   release_label                     = "emr-6.6.0"
   applications                      = ["Spark", "Hive"]
   termination_protection            = false
@@ -46,6 +46,18 @@ resource "aws_emr_cluster" "benchmarks" {
 
   configurations_json = <<EOF
   [
+    {
+      "Classification": "spark-defaults",
+      "Properties": {
+          "spark.dynamicAllocation.enabled": "false"
+      }
+    }, 
+    {
+      "Classification": "spark",
+      "Properties": {
+          "maximizeResourceAllocation": "true"
+      }
+    },
     {
       "Classification": "hive-site",
       "Properties": {
