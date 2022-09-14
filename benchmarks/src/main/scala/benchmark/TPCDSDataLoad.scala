@@ -106,23 +106,32 @@ class TPCDSDataLoad(conf: TPCDSDataLoadConf) extends Benchmark(conf) {
       
       val tableOptions = if ("hudi".equalsIgnoreCase(conf.formatName)) {
         s"""
-            |OPTIONS (
-            | type = 'cow',
-            | primaryKey = '${tablePrimaryKeys(tableName).mkString(",")}',
-            | precombineField = '',
-            | 'hoodie.datasource.write.hive_style_partitioning' = 'true',
-            | 'hoodie.parquet.compression.codec' = 'snappy',
-            | 'hoodie.populate.meta.fields' = 'false',
-            | 'hoodie.combine.before.insert' = 'false',
-            | 'hoodie.sql.insert.mode' = 'non-strict',
-            | 'hoodie.sql.bulk.insert.enable' = 'true',
-            | 'hoodie.bulkinsert.sort.mode' = 'NONE',
-            | 'hoodie.parquet.max.file.size' = '141557760',
-            | 'hoodie.parquet.block.size' = '141557760',
-            | 'hoodie.metadata.enable' = 'false',
-            | 'hoodie.parquet.writelegacyformat.enabled' = 'false'
-            |)
-            |""".stripMargin
+          |OPTIONS (
+          | type = 'cow',
+          | primaryKey = '${tablePrimaryKeys(tableName).mkString(",")}',
+          | precombineField = '',
+          | 'hoodie.datasource.write.hive_style_partitioning' = 'true',
+          | 'hoodie.parquet.compression.codec' = 'snappy',
+          | 'hoodie.populate.meta.fields' = 'false',
+          | 'hoodie.combine.before.insert' = 'false',
+          | 'hoodie.sql.insert.mode' = 'non-strict',
+          | 'hoodie.sql.bulk.insert.enable' = 'true',
+          | 'hoodie.bulkinsert.sort.mode' = 'NONE',
+          | 'hoodie.parquet.max.file.size' = '141557760',
+          | 'hoodie.parquet.block.size' = '141557760',
+          | 'hoodie.metadata.enable' = 'false',
+          | 'hoodie.parquet.writelegacyformat.enabled' = 'false'
+          |)
+          |""".stripMargin
+      } else if ("iceberg".equalsIgnoreCase(conf.formatName)) {
+        s"""
+          |TBLPROPERTIES (
+          | 'write.format.default' = 'parquet',
+          | 'write.parquet.compression-codec' = 'snappy',
+          | 'write.merge.mode' = 'copy-on-write'
+          |)
+          |""".stripMargin
+
       } else {
         ""
       }
